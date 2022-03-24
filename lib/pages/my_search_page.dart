@@ -47,7 +47,7 @@ class _MySearchPageState extends State<MySearchPage> {
     });
     await DataService.unfollowUser(someone);
     setState(() {
-      someone.followed = true;
+      someone.followed = false;
       isLoading = false;
     });
     DataService.removePostsFromMyFeed(someone);
