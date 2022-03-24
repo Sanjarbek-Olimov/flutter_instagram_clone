@@ -43,6 +43,7 @@ class _SignInPageState extends State<SignInPage> {
 
   void _getFirebaseUser(User? user) {
     if (user != null) {
+      HiveDB.storeUid(user.uid);
       Navigator.pushReplacement(
           context, MaterialPageRoute(builder: (context) => HomePage()));
     }

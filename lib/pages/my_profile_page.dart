@@ -19,15 +19,12 @@ class MyProfilePage extends StatefulWidget {
 class _MyProfilePageState extends State<MyProfilePage> {
   bool isLoading = false;
   List<Post> items = [];
-  String post_img1 =
-      "https://firebasestorage.googleapis.com/v0/b/koreanguideway.appspot.com/o/develop%2Fpost.png?alt=media&token=f0b1ba56-4bf4-4df2-9f43-6b8665cdc964";
-  String post_img2 =
-      "https://firebasestorage.googleapis.com/v0/b/koreanguideway.appspot.com/o/develop%2Fpost2.png?alt=media&token=ac0c131a-4e9e-40c0-a75a-88e586b28b72";
   int axisCount = 1;
   File? _image;
   String fullName = "";
   String email = "";
   String img_url = "";
+  int count_post = 0;
 
   void _apiLoadUser() {
     setState(() {
@@ -61,17 +58,23 @@ class _MyProfilePageState extends State<MyProfilePage> {
     _apiLoadUser();
   }
 
+  void _apiLoadPost() {
+    DataService.loadPosts().then((value) => {_resLoadPosts(value)});
+  }
+
+  void _resLoadPosts(List<Post> posts) {
+    setState(() {
+      items = posts;
+      count_post = items.length;
+    });
+  }
+
   @override
   void initState() {
     // TODO: implement initState
     super.initState();
-    items.add(Post(
-        postImage: post_img1,
-        caption: "Discover more great images on our sponsor's site"));
-    items.add(Post(
-        postImage: post_img2,
-        caption: "Discover more great images on our sponsor's site"));
     _apiLoadUser();
+    _apiLoadPost();
   }
 
   _imgFromGalleryCamera(source) async {
@@ -132,7 +135,7 @@ class _MyProfilePageState extends State<MyProfilePage> {
                 },
                 icon: const Icon(
                   Icons.exit_to_app,
-                  color: Colors.black87,
+                  color: Color.fromRGBO(193, 53, 132, 1),
                 ))
           ],
         ),
@@ -211,7 +214,7 @@ class _MyProfilePageState extends State<MyProfilePage> {
                   ),
 
                   // #mycounts
-                  Container(
+                  SizedBox(
                     height: 80,
                     child: Row(
                       children: [
@@ -219,18 +222,18 @@ class _MyProfilePageState extends State<MyProfilePage> {
                             child: Center(
                           child: Column(
                             mainAxisAlignment: MainAxisAlignment.center,
-                            children: const [
+                            children: [
                               Text(
-                                "675",
-                                style: TextStyle(
+                                count_post.toString(),
+                                style: const TextStyle(
                                     color: Colors.black,
                                     fontSize: 16,
                                     fontWeight: FontWeight.bold),
                               ),
-                              SizedBox(
+                              const SizedBox(
                                 height: 3,
                               ),
-                              Text(
+                              const Text(
                                 "POSTS",
                                 style: TextStyle(
                                     color: Colors.grey,
@@ -279,7 +282,7 @@ class _MyProfilePageState extends State<MyProfilePage> {
                             child: Center(
                           child: Column(
                             mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
+                            children: const [
                               Text(
                                 "897",
                                 style: TextStyle(
@@ -366,9 +369,9 @@ class _MyProfilePageState extends State<MyProfilePage> {
           Expanded(
             child: CachedNetworkImage(
               width: double.infinity,
-              imageUrl: post.postImage,
+              imageUrl: post.img_post,
               placeholder: (context, url) =>
-                  const CircularProgressIndicator.adaptive(),
+                  const Center(child: CircularProgressIndicator.adaptive()),
               errorWidget: (context, url, error) => const Icon(Icons.error),
               fit: BoxFit.cover,
             ),

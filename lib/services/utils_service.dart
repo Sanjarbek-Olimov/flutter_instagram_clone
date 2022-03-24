@@ -8,7 +8,7 @@ class Utils {
 
   static bool validatePassword(String value) {
     String pattern =
-        r'^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[!@#\$&*~]).{8,30}$';
+        r'^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[!@#\$&*~+-]).{8,30}$';
     RegExp regExp = RegExp(pattern);
     return regExp.hasMatch(value);
   }

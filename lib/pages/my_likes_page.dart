@@ -21,12 +21,6 @@ class _MyLikesPageState extends State<MyLikesPage> {
   void initState() {
     // TODO: implement initState
     super.initState();
-    items.add(Post(
-        postImage: post_img1,
-        caption: "Discover more great images on our sponsor's site"));
-    items.add(Post(
-        postImage: post_img2,
-        caption: "Discover more great images on our sponsor's site"));
   }
 
   @override
@@ -92,7 +86,7 @@ class _MyLikesPageState extends State<MyLikesPage> {
 
         // #image
         CachedNetworkImage(
-          imageUrl: post.postImage,
+          imageUrl: post.img_post,
           placeholder: (context, url) =>
               const CircularProgressIndicator.adaptive(),
           errorWidget: (context, url, error) => const Icon(Icons.error),

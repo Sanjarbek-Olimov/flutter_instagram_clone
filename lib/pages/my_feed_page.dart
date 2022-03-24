@@ -1,6 +1,7 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_instagram/model/post_model.dart';
+import 'package:flutter_instagram/services/data_service.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 class MyFeedPage extends StatefulWidget {
@@ -14,21 +15,24 @@ class MyFeedPage extends StatefulWidget {
 
 class _MyFeedPageState extends State<MyFeedPage> {
   List<Post> items = [];
-  String post_img1 =
-      "https://firebasestorage.googleapis.com/v0/b/koreanguideway.appspot.com/o/develop%2Fpost.png?alt=media&token=f0b1ba56-4bf4-4df2-9f43-6b8665cdc964";
-  String post_img2 =
-      "https://firebasestorage.googleapis.com/v0/b/koreanguideway.appspot.com/o/develop%2Fpost2.png?alt=media&token=ac0c131a-4e9e-40c0-a75a-88e586b28b72";
+
+  void _apiLoadFeeds(){
+    DataService.loadFeeds().then((value) => {
+      _resLoadFeeds(value)
+    });
+  }
+
+  void _resLoadFeeds(List<Post> posts){
+    setState(() {
+      items = posts;
+    });
+  }
 
   @override
   void initState() {
     // TODO: implement initState
     super.initState();
-    items.add(Post(
-        postImage: post_img1,
-        caption: "Discover more great images on our sponsor's site"));
-    items.add(Post(
-        postImage: post_img2,
-        caption: "Discover more great images on our sponsor's site"));
+    _apiLoadFeeds();
   }
 
   @override
@@ -52,7 +56,7 @@ class _MyFeedPageState extends State<MyFeedPage> {
                 },
                 icon: const Icon(
                   Icons.camera_alt,
-                  color: Colors.black,
+                  color:  Color.fromRGBO(193, 53, 132, 1),
                 ))
           ],
         ),
@@ -84,16 +88,16 @@ class _MyFeedPageState extends State<MyFeedPage> {
                   fit: BoxFit.cover,
                 ),
               ),
-              title: const Text(
-                "Username",
-                style: TextStyle(
+              title: Text(
+                post.fullName!,
+                style: const TextStyle(
                     fontWeight: FontWeight.bold,
                     color: Colors.black,
                     fontSize: 16),
               ),
-              subtitle: const Text(
-                "March 15, 2022",
-                style: TextStyle(fontWeight: FontWeight.normal, fontSize: 13),
+              subtitle: Text(
+                post.date!,
+                style: const TextStyle(fontWeight: FontWeight.normal, fontSize: 13),
               ),
               trailing: IconButton(
                 onPressed: () {},
@@ -106,9 +110,12 @@ class _MyFeedPageState extends State<MyFeedPage> {
 
         // #image
         CachedNetworkImage(
-          imageUrl: post.postImage,
-          placeholder: (context, url) => const CircularProgressIndicator.adaptive(),
+          width: MediaQuery.of(context).size.width,
+          height: MediaQuery.of(context).size.width,
+          imageUrl: post.img_post,
+          placeholder: (context, url) => const Center(child: CircularProgressIndicator.adaptive()),
           errorWidget: (context, url, error) => const Icon(Icons.error),
+          fit: BoxFit.cover,
         ),
 
         // #likeshare
@@ -122,7 +129,7 @@ class _MyFeedPageState extends State<MyFeedPage> {
                 IconButton(
                     onPressed: () {},
                     icon: const FaIcon(
-                      FontAwesomeIcons.solidPaperPlane,
+                      Icons.share_outlined,
                     )),
               ],
             )
