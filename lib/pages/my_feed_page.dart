@@ -2,6 +2,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_instagram/model/post_model.dart';
 import 'package:flutter_instagram/services/data_service.dart';
+import 'package:flutter_instagram/services/utils_service.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 class MyFeedPage extends StatefulWidget {
@@ -18,12 +19,16 @@ class _MyFeedPageState extends State<MyFeedPage> {
   List<Post> items = [];
 
   void _apiLoadFeeds() {
+    setState(() {
+      isLoading = true;
+    });
     DataService.loadFeeds().then((value) => {_resLoadFeeds(value)});
   }
 
   void _resLoadFeeds(List<Post> posts) {
     setState(() {
       items = posts;
+      isLoading = false;
     });
   }
 
@@ -47,6 +52,17 @@ class _MyFeedPageState extends State<MyFeedPage> {
       isLoading = false;
       post.liked = false;
     });
+  }
+
+  void _actionRemovePost(Post post) async {
+    var result = await Utils.dialogCommon(
+        context, "Insta Clone", "Do you want to remove this post?", false);
+    if (result) {
+      setState(() {
+        isLoading = true;
+      });
+      DataService.removePost(post).then((value) => {_apiLoadFeeds()});
+    }
   }
 
   @override
@@ -81,11 +97,18 @@ class _MyFeedPageState extends State<MyFeedPage> {
                 ))
           ],
         ),
-        body: ListView.builder(
-            itemCount: items.length,
-            itemBuilder: (context, index) {
-              return _itemOfPost(items[index]);
-            }));
+        body: Stack(
+          children: [
+            ListView.builder(
+                itemCount: items.length,
+                itemBuilder: (context, index) {
+                  return _itemOfPost(items[index]);
+                }),
+            isLoading
+                ? const Center(child: CircularProgressIndicator.adaptive())
+                : const SizedBox.shrink()
+          ],
+        ));
   }
 
   Widget _itemOfPost(Post post) {
@@ -127,13 +150,17 @@ class _MyFeedPageState extends State<MyFeedPage> {
                 style: const TextStyle(
                     fontWeight: FontWeight.normal, fontSize: 13),
               ),
-              trailing: IconButton(
-                onPressed: () {},
-                icon: const Icon(
-                  Icons.more_horiz,
-                  color: Colors.black,
-                ),
-              ),
+              trailing: post.mine
+                  ? IconButton(
+                      onPressed: () {
+                        _actionRemovePost(post);
+                      },
+                      icon: const Icon(
+                        Icons.more_horiz,
+                        color: Colors.black,
+                      ),
+                    )
+                  : const SizedBox.shrink(),
             )),
 
         // #image

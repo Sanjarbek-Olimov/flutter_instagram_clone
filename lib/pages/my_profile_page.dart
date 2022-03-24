@@ -7,6 +7,7 @@ import 'package:flutter_instagram/model/user_model.dart';
 import 'package:flutter_instagram/services/auth_service.dart';
 import 'package:flutter_instagram/services/data_service.dart';
 import 'package:flutter_instagram/services/file_service.dart';
+import 'package:flutter_instagram/services/utils_service.dart';
 import 'package:image_picker/image_picker.dart';
 
 class MyProfilePage extends StatefulWidget {
@@ -62,7 +63,10 @@ class _MyProfilePageState extends State<MyProfilePage> {
     _apiLoadUser();
   }
 
-  void _apiLoadPost() {
+  void  _apiLoadPost() {
+    setState(() {
+      isLoading = true;
+    });
     DataService.loadPosts().then((value) => {_resLoadPosts(value)});
   }
 
@@ -70,6 +74,7 @@ class _MyProfilePageState extends State<MyProfilePage> {
     setState(() {
       items = posts;
       count_post = items.length;
+      isLoading = false;
     });
   }
 
@@ -120,6 +125,23 @@ class _MyProfilePageState extends State<MyProfilePage> {
         });
   }
 
+  void _actionLogOut() async {
+    var result = await Utils.dialogCommon(
+        context, "Insta Clone", "Do you want to log out?", false);
+    if (result) AuthService.signOutUser(context);
+  }
+
+  void _actionRemovePost(Post post) async {
+    var result = await Utils.dialogCommon(
+        context, "Insta Clone", "Do you want to remove this post?", false);
+    if (result) {
+      setState(() {
+        isLoading = true;
+      });
+      DataService.removePost(post).then((value) => {_apiLoadPost()});
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -134,9 +156,7 @@ class _MyProfilePageState extends State<MyProfilePage> {
           centerTitle: true,
           actions: [
             IconButton(
-                onPressed: () {
-                  AuthService.signOutUser(context);
-                },
+                onPressed: _actionLogOut,
                 icon: const Icon(
                   Icons.exit_to_app,
                   color: Color.fromRGBO(193, 53, 132, 1),
@@ -313,7 +333,7 @@ class _MyProfilePageState extends State<MyProfilePage> {
 
                   // #gridselect
                   SizedBox(
-                    height: 80,
+                    height: 50,
                     child: Row(
                       children: [
                         Expanded(
@@ -366,29 +386,34 @@ class _MyProfilePageState extends State<MyProfilePage> {
   }
 
   Widget _itemOfPost(Post post) {
-    return Container(
-      margin: const EdgeInsets.all(5),
-      child: Column(
-        children: [
-          Expanded(
-            child: CachedNetworkImage(
-              width: double.infinity,
-              imageUrl: post.img_post,
-              placeholder: (context, url) =>
-                  const Center(child: CircularProgressIndicator.adaptive()),
-              errorWidget: (context, url, error) => const Icon(Icons.error),
-              fit: BoxFit.cover,
+    return GestureDetector(
+      onLongPress: () {
+        _actionRemovePost(post);
+      },
+      child: Container(
+        margin: const EdgeInsets.all(5),
+        child: Column(
+          children: [
+            Expanded(
+              child: CachedNetworkImage(
+                width: double.infinity,
+                imageUrl: post.img_post,
+                placeholder: (context, url) =>
+                    const Center(child: CircularProgressIndicator.adaptive()),
+                errorWidget: (context, url, error) => const Icon(Icons.error),
+                fit: BoxFit.cover,
+              ),
             ),
-          ),
-          const SizedBox(
-            height: 3,
-          ),
-          Text(
-            post.caption,
-            style: TextStyle(color: Colors.black87.withOpacity(0.7)),
-            maxLines: 2,
-          )
-        ],
+            const SizedBox(
+              height: 3,
+            ),
+            Text(
+              post.caption,
+              style: TextStyle(color: Colors.black87.withOpacity(0.7)),
+              maxLines: 2,
+            )
+          ],
+        ),
       ),
     );
   }

@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_instagram/model/post_model.dart';
 import 'package:flutter_instagram/model/user_model.dart';
 import 'package:flutter_instagram/services/hive_service.dart';
+import 'package:flutter_instagram/services/utils_service.dart';
 
 class DataService {
   static final _fireStore = FirebaseFirestore.instance;
@@ -16,6 +17,12 @@ class DataService {
 
   static Future storeUser(UserModel user) async {
     user.uid = HiveDB.loadUid();
+    Map<String, String> params = await Utils.deviceParams();
+
+    user.device_id = params['device_id']!;
+    user.device_type = params['device_type']!;
+    user.device_token = params['device_token']!;
+
     return _fireStore.collection(folder_user).doc(user.uid).set(user.toJson());
   }
 
@@ -53,7 +60,7 @@ class DataService {
     var querySnapshot = await _fireStore
         .collection(folder_user)
         .orderBy("fullName")
-        .startAt([keyword]).endAt([keyword +'\uf8ff']).get();
+        .startAt([keyword]).endAt([keyword + '\uf8ff']).get();
 
     for (var result in querySnapshot.docs) {
       UserModel newUser = UserModel.fromJson(result.data());
@@ -130,6 +137,7 @@ class DataService {
         .get();
     for (var element in querySnapshot.docs) {
       Post post = Post.fromJson(element.data());
+      if (post.uid == uid) post.mine = true;
       posts.add(post);
     }
     return posts;
@@ -274,6 +282,17 @@ class DataService {
         .collection(folder_user)
         .doc(uid)
         .collection(folder_feeds)
+        .doc(post.id)
+        .delete();
+  }
+
+  static Future removePost(Post post) async {
+    String uid = HiveDB.loadUid();
+    await removeFeed(post);
+    return await _fireStore
+        .collection(folder_user)
+        .doc(uid)
+        .collection(folder_posts)
         .doc(post.id)
         .delete();
   }

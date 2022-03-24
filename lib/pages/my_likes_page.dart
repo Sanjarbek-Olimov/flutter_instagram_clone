@@ -2,6 +2,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_instagram/model/post_model.dart';
 import 'package:flutter_instagram/services/data_service.dart';
+import 'package:flutter_instagram/services/utils_service.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 class MyLikesPage extends StatefulWidget {
@@ -34,6 +35,17 @@ class _MyLikesPageState extends State<MyLikesPage> {
       isLoading = true;
     });
     await DataService.likePost(post, false).then((value) => {_apiLoadLikes()});
+  }
+
+  void _actionRemovePost(Post post) async {
+    var result = await Utils.dialogCommon(
+        context, "Insta Clone", "Do you want to remove this post?", false);
+    if (result) {
+      setState(() {
+        isLoading = true;
+      });
+      DataService.removePost(post).then((value) => {_apiLoadLikes()});
+    }
   }
 
   @override
@@ -90,16 +102,16 @@ class _MyLikesPageState extends State<MyLikesPage> {
                 borderRadius: BorderRadius.circular(40),
                 child: post.img_user!.isEmpty || post.img_user == null
                     ? Image.asset(
-                  "assets/images/img.png",
-                  width: 40,
-                  height: 40,
-                  fit: BoxFit.cover,
-                )
+                        "assets/images/img.png",
+                        width: 40,
+                        height: 40,
+                        fit: BoxFit.cover,
+                      )
                     : CachedNetworkImage(
-                    imageUrl: post.img_user!,
-                    width: 40,
-                    height: 40,
-                    fit: BoxFit.cover),
+                        imageUrl: post.img_user!,
+                        width: 40,
+                        height: 40,
+                        fit: BoxFit.cover),
               ),
               title: Text(
                 post.fullName!,
@@ -113,13 +125,16 @@ class _MyLikesPageState extends State<MyLikesPage> {
                 style: const TextStyle(
                     fontWeight: FontWeight.normal, fontSize: 13),
               ),
-              trailing: IconButton(
-                onPressed: () {},
-                icon: const Icon(
-                  Icons.more_horiz,
-                  color: Colors.black,
-                ),
-              ),
+              trailing: post.mine
+                  ? IconButton(
+                      onPressed: () {
+                        _actionRemovePost(post);
+                      },
+                      icon: const Icon(
+                        Icons.more_horiz,
+                        color: Colors.black,
+                      ))
+                  : const SizedBox.shrink(),
             )),
 
         // #image
