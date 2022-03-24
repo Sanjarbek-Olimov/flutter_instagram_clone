@@ -25,6 +25,8 @@ class _MyProfilePageState extends State<MyProfilePage> {
   String email = "";
   String img_url = "";
   int count_post = 0;
+  int followers = 0;
+  int following = 0;
 
   void _apiLoadUser() {
     setState(() {
@@ -35,9 +37,11 @@ class _MyProfilePageState extends State<MyProfilePage> {
 
   void _showUserInfo(UserModel userModel) {
     setState(() {
-      this.fullName = userModel.fullName;
-      this.email = userModel.email;
-      this.img_url = userModel.img_url;
+      fullName = userModel.fullName;
+      email = userModel.email;
+      img_url = userModel.img_url;
+      followers = userModel.followers;
+      following = userModel.followings;
       isLoading = false;
     });
   }
@@ -252,18 +256,18 @@ class _MyProfilePageState extends State<MyProfilePage> {
                             child: Center(
                           child: Column(
                             mainAxisAlignment: MainAxisAlignment.center,
-                            children: const [
+                            children: [
                               Text(
-                                "4,565",
-                                style: TextStyle(
+                                followers.toString(),
+                                style: const TextStyle(
                                     color: Colors.black,
                                     fontSize: 16,
                                     fontWeight: FontWeight.bold),
                               ),
-                              SizedBox(
+                              const SizedBox(
                                 height: 3,
                               ),
-                              Text(
+                              const Text(
                                 "FOLLOWERS",
                                 style: TextStyle(
                                     color: Colors.grey,
@@ -282,18 +286,18 @@ class _MyProfilePageState extends State<MyProfilePage> {
                             child: Center(
                           child: Column(
                             mainAxisAlignment: MainAxisAlignment.center,
-                            children: const [
+                            children: [
                               Text(
-                                "897",
-                                style: TextStyle(
+                                following.toString(),
+                                style: const TextStyle(
                                     color: Colors.black,
                                     fontSize: 16,
                                     fontWeight: FontWeight.bold),
                               ),
-                              SizedBox(
+                              const SizedBox(
                                 height: 3,
                               ),
-                              Text(
+                              const Text(
                                 "FOLLOWING",
                                 style: TextStyle(
                                     color: Colors.grey,
@@ -308,7 +312,7 @@ class _MyProfilePageState extends State<MyProfilePage> {
                   ),
 
                   // #gridselect
-                  Container(
+                  SizedBox(
                     height: 80,
                     child: Row(
                       children: [

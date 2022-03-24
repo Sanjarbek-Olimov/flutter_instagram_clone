@@ -14,17 +14,38 @@ class MyFeedPage extends StatefulWidget {
 }
 
 class _MyFeedPageState extends State<MyFeedPage> {
+  bool isLoading = false;
   List<Post> items = [];
 
-  void _apiLoadFeeds(){
-    DataService.loadFeeds().then((value) => {
-      _resLoadFeeds(value)
+  void _apiLoadFeeds() {
+    DataService.loadFeeds().then((value) => {_resLoadFeeds(value)});
+  }
+
+  void _resLoadFeeds(List<Post> posts) {
+    setState(() {
+      items = posts;
     });
   }
 
-  void _resLoadFeeds(List<Post> posts){
+  void _apiPostLike(Post post) async {
     setState(() {
-      items = posts;
+      isLoading = true;
+    });
+    await DataService.likePost(post, true);
+    setState(() {
+      isLoading = false;
+      post.liked = true;
+    });
+  }
+
+  void _apiPostUnlike(Post post) async {
+    setState(() {
+      isLoading = true;
+    });
+    await DataService.likePost(post, false);
+    setState(() {
+      isLoading = false;
+      post.liked = false;
     });
   }
 
@@ -56,7 +77,7 @@ class _MyFeedPageState extends State<MyFeedPage> {
                 },
                 icon: const Icon(
                   Icons.camera_alt,
-                  color:  Color.fromRGBO(193, 53, 132, 1),
+                  color: Color.fromRGBO(193, 53, 132, 1),
                 ))
           ],
         ),
@@ -81,12 +102,18 @@ class _MyFeedPageState extends State<MyFeedPage> {
               contentPadding: EdgeInsets.zero,
               leading: ClipRRect(
                 borderRadius: BorderRadius.circular(40),
-                child: Image.asset(
-                  "assets/images/img.png",
-                  width: 40,
-                  height: 40,
-                  fit: BoxFit.cover,
-                ),
+                child: post.img_user!.isEmpty || post.img_user == null
+                    ? Image.asset(
+                        "assets/images/img.png",
+                        width: 40,
+                        height: 40,
+                        fit: BoxFit.cover,
+                      )
+                    : CachedNetworkImage(
+                        imageUrl: post.img_user!,
+                        width: 40,
+                        height: 40,
+                        fit: BoxFit.cover),
               ),
               title: Text(
                 post.fullName!,
@@ -97,7 +124,8 @@ class _MyFeedPageState extends State<MyFeedPage> {
               ),
               subtitle: Text(
                 post.date!,
-                style: const TextStyle(fontWeight: FontWeight.normal, fontSize: 13),
+                style: const TextStyle(
+                    fontWeight: FontWeight.normal, fontSize: 13),
               ),
               trailing: IconButton(
                 onPressed: () {},
@@ -113,7 +141,8 @@ class _MyFeedPageState extends State<MyFeedPage> {
           width: MediaQuery.of(context).size.width,
           height: MediaQuery.of(context).size.width,
           imageUrl: post.img_post,
-          placeholder: (context, url) => const Center(child: CircularProgressIndicator.adaptive()),
+          placeholder: (context, url) =>
+              const Center(child: CircularProgressIndicator.adaptive()),
           errorWidget: (context, url, error) => const Icon(Icons.error),
           fit: BoxFit.cover,
         ),
@@ -125,7 +154,19 @@ class _MyFeedPageState extends State<MyFeedPage> {
             Row(
               children: [
                 IconButton(
-                    onPressed: () {}, icon: const FaIcon(FontAwesomeIcons.heart)),
+                    onPressed: () {
+                      if (!post.liked) {
+                        _apiPostLike(post);
+                      } else {
+                        _apiPostUnlike(post);
+                      }
+                    },
+                    icon: post.liked
+                        ? const FaIcon(
+                            FontAwesomeIcons.solidHeart,
+                            color: Colors.red,
+                          )
+                        : const FaIcon(FontAwesomeIcons.heart)),
                 IconButton(
                     onPressed: () {},
                     icon: const FaIcon(

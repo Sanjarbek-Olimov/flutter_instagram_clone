@@ -19,7 +19,7 @@ class _MySearchPageState extends State<MySearchPage> {
     setState(() {
       isLoading = true;
     });
-    DataService.searchUser(keyword).then((value) => {_respSearchUsers(value)});
+    DataService.searchUsers(keyword).then((value) => {_respSearchUsers(value)});
   }
 
   void _respSearchUsers(List<UserModel> users) {
@@ -27,6 +27,30 @@ class _MySearchPageState extends State<MySearchPage> {
       items = users;
       isLoading = false;
     });
+  }
+
+  void _apiFollowUser(UserModel someone) async {
+    setState(() {
+      isLoading = true;
+    });
+    await DataService.followUser(someone);
+    setState(() {
+      someone.followed = true;
+      isLoading = false;
+    });
+    DataService.storePostsToMyFeed(someone);
+  }
+
+  void _apiUnfollowUser(UserModel someone) async {
+    setState(() {
+      isLoading = true;
+    });
+    await DataService.unfollowUser(someone);
+    setState(() {
+      someone.followed = true;
+      isLoading = false;
+    });
+    DataService.removePostsFromMyFeed(someone);
   }
 
   @override
@@ -132,17 +156,26 @@ class _MySearchPageState extends State<MySearchPage> {
         softWrap: true,
         overflow: TextOverflow.ellipsis,
       ),
-      trailing: Container(
-        alignment: Alignment.center,
-        width: 100,
-        height: 30,
-        decoration: BoxDecoration(
-            border: Border.all(
-              width: 1,
-              color: Colors.grey,
-            ),
-            borderRadius: BorderRadius.circular(3)),
-        child: Text("Follow"),
+      trailing: GestureDetector(
+        onTap: () {
+          if (user.followed) {
+            _apiUnfollowUser(user);
+          } else {
+            _apiFollowUser(user);
+          }
+        },
+        child: Container(
+          alignment: Alignment.center,
+          width: 100,
+          height: 30,
+          decoration: BoxDecoration(
+              border: Border.all(
+                width: 1,
+                color: Colors.grey,
+              ),
+              borderRadius: BorderRadius.circular(3)),
+          child: user.followed ? const Text("Following") : const Text("Follow"),
+        ),
       ),
     );
   }

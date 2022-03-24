@@ -9,6 +9,8 @@ class DataService {
   static String folder_user = "users";
   static String folder_posts = "posts";
   static String folder_feeds = "feeds";
+  static String folder_followers = "followers";
+  static String folder_followings = "followings";
 
   // User Related
 
@@ -21,6 +23,21 @@ class DataService {
     String uid = HiveDB.loadUid();
     var value = await _fireStore.collection("users").doc(uid).get();
     UserModel user = UserModel.fromJson(value.data()!);
+
+    var querySnapshot1 = await _fireStore
+        .collection(folder_user)
+        .doc(uid)
+        .collection(folder_followers)
+        .get();
+    user.followers = querySnapshot1.docs.length;
+
+    var querySnapshot2 = await _fireStore
+        .collection(folder_user)
+        .doc(uid)
+        .collection(folder_followings)
+        .get();
+    user.followings = querySnapshot2.docs.length;
+
     return user;
   }
 
@@ -29,17 +46,38 @@ class DataService {
     return _fireStore.collection(folder_user).doc(uid).update(user.toJson());
   }
 
-  static Future<List<UserModel>> searchUser(String keyword) async {
+  static Future<List<UserModel>> searchUsers(String keyword) async {
     List<UserModel> users = [];
     String uid = HiveDB.loadUid();
+
     var querySnapshot = await _fireStore
         .collection(folder_user)
         .orderBy("email")
         .startAt([keyword]).get();
+
     for (var result in querySnapshot.docs) {
       UserModel newUser = UserModel.fromJson(result.data());
       if (newUser.uid != uid) {
         users.add(newUser);
+      }
+    }
+
+    List<UserModel> following = [];
+
+    var querySnapshot2 = await _fireStore
+        .collection(folder_user)
+        .doc(uid)
+        .collection(folder_followings)
+        .get();
+    for (var result in querySnapshot2.docs) {
+      following.add(UserModel.fromJson(result.data()));
+    }
+
+    for (UserModel user in users) {
+      if (following.contains(user)) {
+        user.followed = true;
+      } else {
+        user.followed = false;
       }
     }
     return users;
@@ -112,4 +150,131 @@ class DataService {
     return posts;
   }
 
+  static Future<Post> likePost(Post post, bool liked) async {
+    String uid = HiveDB.loadUid();
+    post.liked = liked;
+    await _fireStore
+        .collection(folder_user)
+        .doc(uid)
+        .collection(folder_feeds)
+        .doc(post.id)
+        .set(post.toJson());
+    if (uid == post.uid) {
+      await _fireStore
+          .collection(folder_user)
+          .doc(uid)
+          .collection(folder_posts)
+          .doc(post.id)
+          .set(post.toJson());
+    }
+    return post;
+  }
+
+  static Future<List<Post>> loadLikes() async {
+    String uid = HiveDB.loadUid();
+    List<Post> posts = [];
+    var querySnapshot = await _fireStore
+        .collection(folder_user)
+        .doc(uid)
+        .collection(folder_feeds)
+        .where("liked", isEqualTo: true)
+        .get();
+    for (var element in querySnapshot.docs) {
+      Post post = Post.fromJson(element.data());
+      if (uid == post.uid) post.mine = true;
+      posts.add(post);
+    }
+    return posts;
+  }
+
+  // Follower and Following Related
+
+  static Future<UserModel> followUser(UserModel someone) async {
+    UserModel me = await loadUser();
+
+    // I followed to someone
+    await _fireStore
+        .collection(folder_user)
+        .doc(me.uid)
+        .collection(folder_followings)
+        .doc(someone.uid)
+        .set(someone.toJson());
+
+    // I am followed from someone
+    await _fireStore
+        .collection(folder_user)
+        .doc(someone.uid)
+        .collection(folder_followers)
+        .doc(me.uid)
+        .set(me.toJson());
+
+    return someone;
+  }
+
+  static Future<UserModel> unfollowUser(UserModel someone) async {
+    UserModel me = await loadUser();
+
+    // I don't followed to someone
+    await _fireStore
+        .collection(folder_user)
+        .doc(me.uid)
+        .collection(folder_followings)
+        .doc(someone.uid)
+        .delete();
+
+    // I am not followed from someone
+    await _fireStore
+        .collection(folder_user)
+        .doc(someone.uid)
+        .collection(folder_followers)
+        .doc(me.uid)
+        .delete();
+
+    return someone;
+  }
+
+  static Future storePostsToMyFeed(UserModel someone) async {
+    // Store someone's posts to my feed
+    List<Post> posts = [];
+    var querySnapshot = await _fireStore
+        .collection(folder_user)
+        .doc(someone.uid)
+        .collection(folder_posts)
+        .get();
+    for (var element in querySnapshot.docs) {
+      Post post = Post.fromJson(element.data());
+      post.liked = false;
+      posts.add(post);
+    }
+    for (Post post in posts) {
+      storeFeed(post);
+    }
+  }
+
+  static Future removePostsFromMyFeed(UserModel someone) async {
+    // Remove someone's posts from my feed
+    List<Post> posts = [];
+    var querySnapshot = await _fireStore
+        .collection(folder_user)
+        .doc(someone.uid)
+        .collection(folder_posts)
+        .get();
+    for (var element in querySnapshot.docs) {
+      Post post = Post.fromJson(element.data());
+      posts.add(post);
+    }
+    for (Post post in posts) {
+      removeFeed(post);
+    }
+  }
+
+  static Future removeFeed(Post post) async {
+    String uid = HiveDB.loadUid();
+    return await _fireStore
+        .collection(folder_user)
+        .doc(uid)
+        .collection(folder_feeds)
+        .doc(post.id)
+        .delete();
+  }
 }

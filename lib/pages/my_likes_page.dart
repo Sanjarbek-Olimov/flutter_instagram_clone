@@ -1,6 +1,7 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_instagram/model/post_model.dart';
+import 'package:flutter_instagram/services/data_service.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 class MyLikesPage extends StatefulWidget {
@@ -11,16 +12,35 @@ class MyLikesPage extends StatefulWidget {
 }
 
 class _MyLikesPageState extends State<MyLikesPage> {
+  bool isLoading = false;
   List<Post> items = [];
-  String post_img1 =
-      "https://firebasestorage.googleapis.com/v0/b/koreanguideway.appspot.com/o/develop%2Fpost.png?alt=media&token=f0b1ba56-4bf4-4df2-9f43-6b8665cdc964";
-  String post_img2 =
-      "https://firebasestorage.googleapis.com/v0/b/koreanguideway.appspot.com/o/develop%2Fpost2.png?alt=media&token=ac0c131a-4e9e-40c0-a75a-88e586b28b72";
+
+  void _apiLoadLikes() {
+    setState(() {
+      isLoading = true;
+    });
+    DataService.loadLikes().then((value) => {_resLoadLikes(value)});
+  }
+
+  void _resLoadLikes(List<Post> posts) {
+    setState(() {
+      items = posts;
+      isLoading = false;
+    });
+  }
+
+  void _apiPostUnlike(Post post) async {
+    setState(() {
+      isLoading = true;
+    });
+    await DataService.likePost(post, false).then((value) => {_apiLoadLikes()});
+  }
 
   @override
   void initState() {
     // TODO: implement initState
     super.initState();
+    _apiLoadLikes();
   }
 
   @override
@@ -36,11 +56,22 @@ class _MyLikesPageState extends State<MyLikesPage> {
           ),
           centerTitle: true,
         ),
-        body: ListView.builder(
-            itemCount: items.length,
-            itemBuilder: (context, index) {
-              return _itemOfPost(items[index]);
-            }));
+        body: Stack(
+          children: [
+            items.isEmpty
+                ? const Center(
+                    child: Text("No liked posts"),
+                  )
+                : ListView.builder(
+                    itemCount: items.length,
+                    itemBuilder: (context, index) {
+                      return _itemOfPost(items[index]);
+                    }),
+            isLoading
+                ? const Center(child: CircularProgressIndicator.adaptive())
+                : const SizedBox.shrink()
+          ],
+        ));
   }
 
   Widget _itemOfPost(Post post) {
@@ -57,23 +88,30 @@ class _MyLikesPageState extends State<MyLikesPage> {
               contentPadding: EdgeInsets.zero,
               leading: ClipRRect(
                 borderRadius: BorderRadius.circular(40),
-                child: Image.asset(
+                child: post.img_user!.isEmpty || post.img_user == null
+                    ? Image.asset(
                   "assets/images/img.png",
                   width: 40,
                   height: 40,
                   fit: BoxFit.cover,
-                ),
+                )
+                    : CachedNetworkImage(
+                    imageUrl: post.img_user!,
+                    width: 40,
+                    height: 40,
+                    fit: BoxFit.cover),
               ),
-              title: const Text(
-                "Username",
-                style: TextStyle(
+              title: Text(
+                post.fullName!,
+                style: const TextStyle(
                     fontWeight: FontWeight.bold,
                     color: Colors.black,
                     fontSize: 16),
               ),
-              subtitle: const Text(
-                "March 15, 2022",
-                style: TextStyle(fontWeight: FontWeight.normal, fontSize: 13),
+              subtitle: Text(
+                post.date!,
+                style: const TextStyle(
+                    fontWeight: FontWeight.normal, fontSize: 13),
               ),
               trailing: IconButton(
                 onPressed: () {},
@@ -86,10 +124,13 @@ class _MyLikesPageState extends State<MyLikesPage> {
 
         // #image
         CachedNetworkImage(
+          width: MediaQuery.of(context).size.width,
+          height: MediaQuery.of(context).size.width,
           imageUrl: post.img_post,
           placeholder: (context, url) =>
-              const CircularProgressIndicator.adaptive(),
+              const Center(child: CircularProgressIndicator.adaptive()),
           errorWidget: (context, url, error) => const Icon(Icons.error),
+          fit: BoxFit.cover,
         ),
 
         // #likeshare
@@ -99,12 +140,21 @@ class _MyLikesPageState extends State<MyLikesPage> {
             Row(
               children: [
                 IconButton(
-                    onPressed: () {},
-                    icon: const FaIcon(FontAwesomeIcons.solidHeart, color: Colors.red,)),
+                    onPressed: () {
+                      if (post.liked) {
+                        _apiPostUnlike(post);
+                      }
+                    },
+                    icon: post.liked
+                        ? const FaIcon(
+                            FontAwesomeIcons.solidHeart,
+                            color: Colors.red,
+                          )
+                        : const FaIcon(FontAwesomeIcons.heart)),
                 IconButton(
                     onPressed: () {},
                     icon: const FaIcon(
-                      FontAwesomeIcons.solidPaperPlane,
+                      Icons.share_outlined,
                     )),
               ],
             )
