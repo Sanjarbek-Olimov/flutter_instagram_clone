@@ -117,7 +117,7 @@ class _MyLikesPageState extends State<MyLikesPage> {
                 borderRadius: BorderRadius.circular(40),
                 child: post.img_user!.isEmpty || post.img_user == null
                     ? Image.asset(
-                        "assets/images/img.png",
+                        "assets/images/background.png",
                         width: 40,
                         height: 40,
                         fit: BoxFit.cover,

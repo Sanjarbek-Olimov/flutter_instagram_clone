@@ -184,7 +184,7 @@ class _MyProfilePageState extends State<MyProfilePage> {
                             borderRadius: BorderRadius.circular(35),
                             child: img_url == ""
                                 ? Image.asset(
-                                    "assets/images/img.png",
+                                    "assets/images/background.png",
                                     width: 70,
                                     height: 70,
                                   )

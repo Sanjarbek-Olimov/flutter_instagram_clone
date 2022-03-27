@@ -145,9 +145,7 @@ class DataService {
 
   static Future<List<Post>> loadPosts(String? userUid) async {
     List<Post> posts = [];
-    if(userUid==null){
-      String userUid = HiveDB.loadUid();
-    }
+    userUid ??= HiveDB.loadUid();
     var querySnapshot = await _fireStore
         .collection(folder_user)
         .doc(userUid)

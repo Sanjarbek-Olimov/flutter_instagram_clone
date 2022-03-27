@@ -146,7 +146,7 @@ class _MySearchPageState extends State<MySearchPage> {
           borderRadius: BorderRadius.circular(22.5),
           child: user.img_url.isEmpty
               ? Image.asset(
-                  "assets/images/img.png",
+                  "assets/images/background.png",
                   width: 45,
                   height: 45,
                   fit: BoxFit.cover,

@@ -7,7 +7,6 @@ import 'package:flutter_instagram/pages/my_profile_page.dart';
 import 'package:flutter_instagram/pages/my_search_page.dart';
 import 'package:flutter_instagram/pages/my_upload_page.dart';
 import 'package:flutter_instagram/services/utils_service.dart';
-import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
 class HomePage extends StatefulWidget {
   static const String id = "home_page";
@@ -50,19 +49,17 @@ class _HomePageState extends State<HomePage> {
         },
         children: [
           MyFeedPage(pageController: _pageController),
-          MySearchPage(),
+          const MySearchPage(),
           MyUploadPage(pageController: _pageController),
-          MyLikesPage(),
-          MyProfilePage()
+          const MyLikesPage(),
+          const MyProfilePage()
         ],
       ),
       bottomNavigationBar: CupertinoTabBar(
         onTap: (index) {
           setState(() {
             _currentTap = index;
-            _pageController.animateToPage(index,
-                duration: const Duration(milliseconds: 200),
-                curve: Curves.easeIn);
+            _pageController.jumpToPage(index);
           });
         },
         currentIndex: _currentTap,

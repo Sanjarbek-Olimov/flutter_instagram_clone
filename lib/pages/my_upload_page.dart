@@ -60,8 +60,7 @@ class _MyUploadPageState extends State<MyUploadPage> {
       _image = null;
       captionController.clear();
     });
-    widget.pageController.animateToPage(0,
-        duration: const Duration(milliseconds: 200), curve: Curves.easeIn);
+    widget.pageController.jumpToPage(0);
   }
 
   void bottomSheet() {
