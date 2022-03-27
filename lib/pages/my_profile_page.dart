@@ -60,6 +60,7 @@ class _MyProfilePageState extends State<MyProfilePage> {
     UserModel userModel = await DataService.loadUser(null);
     userModel.img_url = downLoadUrl;
     await DataService.updateUser(userModel);
+    await DataService.updatePostsToFollowersFeed(userModel);
     _apiLoadUser();
   }
 

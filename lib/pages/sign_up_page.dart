@@ -1,4 +1,5 @@
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_instagram/model/user_model.dart';
 import 'package:flutter_instagram/pages/sign_in_page.dart';
@@ -61,6 +62,7 @@ class _SignUpPageState extends State<SignUpPage> {
         .then((value) => _getFirebaseUser(userModel, value));
   }
 
+
   void _getFirebaseUser(UserModel userModel, User? user) {
     if (user != null) {
       HiveDB.storeUid(user.uid);
@@ -70,6 +72,13 @@ class _SignUpPageState extends State<SignUpPage> {
     setState(() {
       isLoading = false;
     });
+  }
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    Utils.initNotification();
   }
 
   @override

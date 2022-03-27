@@ -22,7 +22,6 @@ class MyFeedPage extends StatefulWidget {
 }
 
 class _MyFeedPageState extends State<MyFeedPage> {
-  static GlobalKey _globalKey = GlobalKey();
   bool isLoading = false;
   bool isSharing = false;
   List<Post> items = [];
@@ -83,42 +82,39 @@ class _MyFeedPageState extends State<MyFeedPage> {
 
   @override
   Widget build(BuildContext context) {
-    return RepaintBoundary(
-      key: _globalKey,
-      child: Scaffold(
-          appBar: AppBar(
-            backgroundColor: Colors.transparent,
-            elevation: 0,
-            title: const Text(
-              "Instagram",
-              style: TextStyle(
-                  color: Colors.black, fontSize: 25, fontFamily: "Bluevinyl"),
-            ),
-            centerTitle: true,
-            actions: [
-              IconButton(
-                  onPressed: () {
-                    widget.pageController.jumpToPage(2);
-                  },
-                  icon: const Icon(
-                    Icons.camera_alt,
-                    color: Color.fromRGBO(193, 53, 132, 1),
-                  ))
-            ],
+    return Scaffold(
+        appBar: AppBar(
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          title: const Text(
+            "Instagram",
+            style: TextStyle(
+                color: Colors.black, fontSize: 25, fontFamily: "Bluevinyl"),
           ),
-          body: Stack(
-            children: [
-              ListView.builder(
-                  itemCount: items.length,
-                  itemBuilder: (context, index) {
-                    return _itemOfPost(items[index]);
-                  }),
-              isLoading
-                  ? const Center(child: CircularProgressIndicator.adaptive())
-                  : const SizedBox.shrink()
-            ],
-          )),
-    );
+          centerTitle: true,
+          actions: [
+            IconButton(
+                onPressed: () {
+                  widget.pageController.jumpToPage(2);
+                },
+                icon: const Icon(
+                  Icons.camera_alt,
+                  color: Color.fromRGBO(193, 53, 132, 1),
+                ))
+          ],
+        ),
+        body: Stack(
+          children: [
+            ListView.builder(
+                itemCount: items.length,
+                itemBuilder: (context, index) {
+                  return _itemOfPost(items[index]);
+                }),
+            isLoading
+                ? const Center(child: CircularProgressIndicator.adaptive())
+                : const SizedBox.shrink()
+          ],
+        ));
   }
 
   Widget _itemOfPost(Post post) {

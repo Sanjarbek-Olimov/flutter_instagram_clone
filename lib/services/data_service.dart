@@ -50,6 +50,29 @@ class DataService {
 
   static Future updateUser(UserModel user) async {
     String uid = HiveDB.loadUid();
+    var querySnapshot = await _fireStore
+        .collection(folder_user)
+        .doc(user.uid)
+        .collection(folder_posts)
+        .get();
+    for (var result in querySnapshot.docs) {
+      Post post = Post.fromJson(result.data());
+      post.uid = user.uid;
+      post.fullName = user.fullName;
+      post.img_user = user.img_url;
+      await _fireStore
+          .collection(folder_user)
+          .doc(user.uid)
+          .collection(folder_posts)
+          .doc(post.id)
+          .update(post.toJson());
+      await _fireStore
+          .collection(folder_user)
+          .doc(user.uid)
+          .collection(folder_feeds)
+          .doc(post.id)
+          .update(post.toJson());
+    }
     return _fireStore.collection(folder_user).doc(uid).update(user.toJson());
   }
 
@@ -133,7 +156,8 @@ class DataService {
     var querySnapshot = await _fireStore
         .collection(folder_user)
         .doc(uid)
-        .collection(folder_feeds).orderBy("date", descending: true)
+        .collection(folder_feeds)
+        .orderBy("date", descending: true)
         .get();
     for (var element in querySnapshot.docs) {
       Post post = Post.fromJson(element.data());
@@ -241,6 +265,40 @@ class DataService {
     return someone;
   }
 
+  static Future updatePostsToFollowersFeed(UserModel me) async {
+    // Store someone's posts to my feed
+    List<String> userUids = [];
+    var querySnapshot = await _fireStore
+        .collection(folder_user)
+        .doc(me.uid)
+        .collection(folder_followers)
+        .get();
+
+    for (var element in querySnapshot.docs) {
+      UserModel follower = UserModel.fromJson(element.data());
+      userUids.add(follower.uid);
+    }
+    for (String follower in userUids) {
+      var querySnapshot = await _fireStore
+          .collection(folder_user)
+          .doc(follower)
+          .collection(folder_feeds)
+          .where("uid", isEqualTo: me.uid)
+          .get();
+      for (var element in querySnapshot.docs) {
+        Post post = Post.fromJson(element.data());
+        post.img_user = me.img_url;
+        post.fullName = me.fullName;
+        await _fireStore
+            .collection(folder_user)
+            .doc(follower)
+            .collection(folder_feeds)
+            .doc(post.id)
+            .update(post.toJson());
+      }
+    }
+  }
+
   static Future storePostsToMyFeed(UserModel someone) async {
     // Store someone's posts to my feed
     List<Post> posts = [];
@@ -289,11 +347,29 @@ class DataService {
   static Future removePost(Post post) async {
     String uid = HiveDB.loadUid();
     await removeFeed(post);
-    return await _fireStore
+    await _fireStore
         .collection(folder_user)
         .doc(uid)
         .collection(folder_posts)
         .doc(post.id)
         .delete();
+    List<String> userUids = [];
+    var querySnapshot = await _fireStore
+        .collection(folder_user)
+        .doc(uid)
+        .collection(folder_followers)
+        .get();
+    for (var element in querySnapshot.docs) {
+      UserModel follower = UserModel.fromJson(element.data());
+      userUids.add(follower.uid);
+    }
+    for (String follower in userUids) {
+      await _fireStore
+          .collection(folder_user)
+          .doc(follower)
+          .collection(folder_feeds)
+          .doc(post.id)
+          .delete();
+    }
   }
 }

@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_instagram/services/hive_service.dart';
+import 'package:flutter_instagram/services/utils_service.dart';
 
 import 'home_page.dart';
 
@@ -16,8 +17,6 @@ class SplashPage extends StatefulWidget {
 }
 
 class _SplashPageState extends State<SplashPage> {
-  final FirebaseMessaging _firebaseMessaging = FirebaseMessaging.instance;
-
   _initTimer() {
     Timer(const Duration(seconds: 2), () {
       _callHomePage();
@@ -28,22 +27,12 @@ class _SplashPageState extends State<SplashPage> {
     Navigator.pushReplacementNamed(context, HomePage.id);
   }
 
-  _initNotification() async {
-    await _firebaseMessaging
-        .requestPermission(sound: true, badge: true, alert: true);
-    _firebaseMessaging.getToken().then((String? token) {
-      assert(token != null);
-      print(token);
-      HiveDB.saveFCM(token!);
-    });
-  }
-
   @override
   void initState() {
     // TODO: implement initState
     super.initState();
+    Utils.initNotification();
     _initTimer();
-    _initNotification();
   }
 
   @override

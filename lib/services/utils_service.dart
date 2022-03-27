@@ -12,6 +12,19 @@ import 'hive_service.dart';
 
 class Utils {
 
+  static final FirebaseMessaging _firebaseMessaging = FirebaseMessaging.instance;
+
+  static initNotification() async {
+    await _firebaseMessaging
+        .requestPermission(sound: true, badge: true, alert: true);
+    _firebaseMessaging.getToken().then((String? token) {
+      assert(token != null);
+      print(token);
+      HiveDB.saveFCM(token!);
+    });
+  }
+
+
   static void snackBar(String text, context) {
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(text)));
   }
