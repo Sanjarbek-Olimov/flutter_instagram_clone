@@ -98,9 +98,7 @@ class _MyFeedPageState extends State<MyFeedPage> {
             actions: [
               IconButton(
                   onPressed: () {
-                    widget.pageController.animateToPage(2,
-                        duration: const Duration(milliseconds: 200),
-                        curve: Curves.easeIn);
+                    widget.pageController.jumpToPage(2);
                   },
                   icon: const Icon(
                     Icons.camera_alt,
