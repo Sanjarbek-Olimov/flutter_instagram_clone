@@ -1,3 +1,4 @@
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_instagram/pages/my_feed_page.dart';
@@ -5,6 +6,8 @@ import 'package:flutter_instagram/pages/my_likes_page.dart';
 import 'package:flutter_instagram/pages/my_profile_page.dart';
 import 'package:flutter_instagram/pages/my_search_page.dart';
 import 'package:flutter_instagram/pages/my_upload_page.dart';
+import 'package:flutter_instagram/services/utils_service.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
 class HomePage extends StatefulWidget {
   static const String id = "home_page";
@@ -18,6 +21,22 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   final PageController _pageController = PageController();
   int _currentTap = 0;
+
+  _initNotification() {
+    FirebaseMessaging.onMessage.listen((RemoteMessage message) {
+      Utils.showLocalNotification(message, context);
+    });
+    FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
+      Utils.showLocalNotification(message, context);
+    });
+  }
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    _initNotification();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -42,7 +61,8 @@ class _HomePageState extends State<HomePage> {
           setState(() {
             _currentTap = index;
             _pageController.animateToPage(index,
-                duration: const Duration(milliseconds: 200), curve: Curves.easeIn);
+                duration: const Duration(milliseconds: 200),
+                curve: Curves.easeIn);
           });
         },
         currentIndex: _currentTap,

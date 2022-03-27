@@ -23,12 +23,27 @@ dependencies:
   firebase_storage: ^10.2.9
   cloud_firestore: ^3.1.10
   device_info_plus: ^3.2.2
+  firebase_messaging: ^11.2.11
+  flutter_local_notifications: ^9.4.0
+  flutter_styled_toast: ^2.0.0
+  http: ^0.13.4
+  path_provider: ^2.0.9
+  share_plus: ^4.0.3
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
 
   flutter_lints: ^1.0.0
+  flutter_native_splash: ^2.1.1
+
+flutter_native_splash:
+  background_image: assets/background.png
+  image: assets/instagram_logo.png
+  android_12:
+    image: assets/splash.png
+    background_image: assets/background.png
+
 
 flutter:
 

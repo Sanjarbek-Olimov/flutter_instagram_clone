@@ -26,21 +26,21 @@ class DataService {
     return _fireStore.collection(folder_user).doc(user.uid).set(user.toJson());
   }
 
-  static Future<UserModel> loadUser() async {
-    String uid = HiveDB.loadUid();
-    var value = await _fireStore.collection("users").doc(uid).get();
+  static Future<UserModel> loadUser(String? userUid) async {
+    userUid ??= HiveDB.loadUid();
+    var value = await _fireStore.collection("users").doc(userUid).get();
     UserModel user = UserModel.fromJson(value.data()!);
 
     var querySnapshot1 = await _fireStore
         .collection(folder_user)
-        .doc(uid)
+        .doc(userUid)
         .collection(folder_followers)
         .get();
     user.followers = querySnapshot1.docs.length;
 
     var querySnapshot2 = await _fireStore
         .collection(folder_user)
-        .doc(uid)
+        .doc(userUid)
         .collection(folder_followings)
         .get();
     user.followings = querySnapshot2.docs.length;
@@ -93,7 +93,7 @@ class DataService {
   // Post Related
 
   static Future<Post> storePost(Post post) async {
-    UserModel me = await loadUser();
+    UserModel me = await loadUser(null);
     post.uid = me.uid;
     post.fullName = me.fullName;
     post.img_user = me.img_url;
@@ -133,7 +133,7 @@ class DataService {
     var querySnapshot = await _fireStore
         .collection(folder_user)
         .doc(uid)
-        .collection(folder_feeds)
+        .collection(folder_feeds).orderBy("date", descending: true)
         .get();
     for (var element in querySnapshot.docs) {
       Post post = Post.fromJson(element.data());
@@ -143,12 +143,14 @@ class DataService {
     return posts;
   }
 
-  static Future<List<Post>> loadPosts() async {
+  static Future<List<Post>> loadPosts(String? userUid) async {
     List<Post> posts = [];
-    String uid = HiveDB.loadUid();
+    if(userUid==null){
+      String userUid = HiveDB.loadUid();
+    }
     var querySnapshot = await _fireStore
         .collection(folder_user)
-        .doc(uid)
+        .doc(userUid)
         .collection(folder_posts)
         .get();
     for (var element in querySnapshot.docs) {
@@ -198,7 +200,7 @@ class DataService {
   // Follower and Following Related
 
   static Future<UserModel> followUser(UserModel someone) async {
-    UserModel me = await loadUser();
+    UserModel me = await loadUser(null);
 
     // I followed to someone
     await _fireStore
@@ -220,7 +222,7 @@ class DataService {
   }
 
   static Future<UserModel> unfollowUser(UserModel someone) async {
-    UserModel me = await loadUser();
+    UserModel me = await loadUser(null);
 
     // I don't followed to someone
     await _fireStore
